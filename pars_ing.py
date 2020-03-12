@@ -3,33 +3,45 @@ import math
 import Config
 import data
 from transliterate import translit
-#import asyncio
-#import aiohttp
+import time
 from bs4 import BeautifulSoup
-
-#async def get_site_content(SELECTED_URL):
- #   async with aiohttp.ClientSession() as session:
-  #      async with session.get(SELECTED_URL) as resp:
-   #         text = await resp.read()
-
-    #return BeautifulSoup(text.decode('utf-8'), 'lxml')
-
-# библиотека для загрузки кода сайта (метод get только знаю)
+from selenium import webdriver
+from selenium.webdriver.common.action_chains import ActionChains
 
 string_ya_api = "https://geocode-maps.yandex.ru/1.x/?apikey={}&geocode=".format(Config.API_YA)
-#url_fo_fav_bar = "https://yandex.ru/maps/213/moscow/search/{}/?from=tabbar&ll={}%2C{}&sll".format()
 
 def get_html(url, user_agent=None, timeout=4):
     user_agent = "Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.136 YaBrowser/20.2.3.213 Yowser/2.5 Safari/537.36"
     r = requests.get(url, headers={'User-Agent': user_agent})
     return r.text
 
+
 def get_ip(dolgota, shirina):  # send you info about your ip and user_agent
-    string_url = "https://yandex.ru/maps/213/moscow/search/bar/?ll={}%2C{}".format(dolgota, shirina)
+    #crome_path = "chromedriver.exe"
+    string_url1 = "https://yandex.ru/maps/213/moscow/search/bar/?ll={}%2C{}&sll={}%2C{}&sspn=0.004897%2C0.002205&z=17".format(dolgota, shirina, dolgota, shirina) #search for bars
+
+    string_url = "https://yandex.ru/maps/213/moscow/category/pub_bar/?ll={}%2C{}&sll={}%2C{}&sspn=0.004897%2C0.002205&z=17".format(dolgota, shirina, dolgota, shirina) #search for bars
     string_url2 = "https://yandex.ru/maps/213/moscow/search/pab/?ll={}%2C{}".format(dolgota, shirina)
-    print(string_url)
-    soup = BeautifulSoup(get_html(string_url), 'lxml')
-    bar_res = [[],[],[],[],[]] #.text.strip()  # .text.strip() в текст превращает все что и так текст), но надо избавится от окружения
+    try:
+        driver = webdriver.Firefox()
+        AcCh = webdriver.common.action_chains.ActionChains(driver)
+        driver.get(string_url)
+        movi = driver.find_element_by_xpath("/html/body/div[1]/div[2]/div[4]/div[1]/div[1]/div/div/div[2]/div[2]")
+        movin = driver.find_element_by_xpath("/html/body/div[1]/div[2]/div[4]/div[1]/div[1]/div/div/div[1]/div/div/div[3]")
+        el = driver.find_element_by_xpath("/html/body/div[1]/div[2]/div[4]/div[1]/div[1]/div/div/div[1]/div/div/div[2]/div/div[1]/div/div[2]/button/span")
+        AcCh.move_to_element(el).click().pause(2).drag_and_drop_by_offset(movi, movin).pause(2).perform()
+        i = 0
+        while 2*len(strings[stri]) > len(driver.current_url):
+            time.sleep(1)
+            i+=1
+            if i>4:
+                AcCh.move_to_element(el).click().perform()
+        soup = BeautifulSoup(driver.page_source, 'lxml')
+        driver.quit()
+    except:
+        soup = BeautifulSoup(get_html(string_url), 'lxml')
+    #soup = BeautifulSoup(get_html(string_url), 'lxml')
+    bar_res = [[],[],[],[],[],[]] #.text.strip()  # .text.strip() в текст превращает все что и так текст), но надо избавится от окружения
     pannels = soup.find_all('li', class_='search-snippet-view')
     for pann in pannels:
         adres = pann.find('div', class_='search-business-snippet-view__address').text.strip()
@@ -42,22 +54,88 @@ def get_ip(dolgota, shirina):  # send you info about your ip and user_agent
         adres = translit(adres, 'ru', reversed=True)
         adres = adres.replace(" ", "+").replace("'", "").replace(",", "")
         soup_url = BeautifulSoup(get_html(string_ya_api + adres), 'lxml')
-        koords = soup_url.find("pos").text.split()
-        dist = distance(shirina, dolgota, float(koords[1]), float(koords[0]))
+        try:
+            koords = soup_url.find("pos").text.split()
+            dist = distance(shirina, dolgota, float(koords[1]), float(koords[0]))
+        except:
+            continue
         if dist > 1900:
             continue
         raiting = pann.find('span', class_="business-rating-badge-view__rating-text _size_m").text.strip()
         try:
-            name = pann.find('div', class_="search-business-snippet-view__title _with-badge")
-            bar_res[2].append(name.text)
+            name = pann.find('div', class_="search-business-snippet-view__title _with-badge").text#try to find tre name
+        except Exception:
+            name = pann.find('div', class_ ="search-business-snippet-view__title").text
         except:
-            bar_res[2].append("NoName")
+            name = "NoName"
         link = pann.find('a', class_="link-wrapper")
         urlka = link.get('href')
-
+        open_or_not = pann.find('div', class_="business-working-status-view__text").text.strip()
+        bar_res[5].append(open_or_not)
         bar_res[0].append(adres_ru)
         bar_res[1].append(raiting)
+        bar_res[2].append(name)
+        bar_res[3].append(urlka)
+        bar_res[4].append(dist)
+    return bar_res
 
+def get_ip_new(dolgota, shirina):  # send you info about your ip and user_agent
+    string_url = "https://yandex.ru/maps/213/moscow/category/pub_bar/?ll={}%2C{}&sll={}%2C{}&sspn=0.004897%2C0.002205&z=17".format(dolgota, shirina, dolgota, shirina)
+    print(string_url)
+    driver = webdriver.Firefox("/home/Sizov/chromedriver/exe")
+    AcCh = ActionChains(driver)
+    driver.get(string_url)
+    print(driver.page_source)
+    movi = driver.find_element_by_xpath("/html/body/div[1]/div[2]/div[4]/div[1]/div[1]/div/div/div[2]/div[2]")
+    movin = driver.find_element_by_xpath("/html/body/div[1]/div[2]/div[4]/div[1]/div[1]/div/div/div[1]/div/div/ul/li[1]")
+    el = driver.find_element_by_xpath(
+        "/html/body/div[1]/div[2]/div[4]/div[1]/div[1]/div/div/div[1]/div/div/div[2]/div/div[1]/div/div[2]/button/span")
+    #driver.set_window_size(4096, 3112)
+    action = AcCh.move_to_element(el).click()
+    action = action.move_to_element(movi)
+    action = action.drag_and_drop(movi, movin)
+    action = action.perform()
+    time.sleep(10)
+    print("wre")
+    soup = BeautifulSoup(driver.page_source, 'lxml')
+    print("EEEE")
+    driver.quit()
+    #soup = BeautifulSoup(get_html(string_url), 'lxml')
+    bar_res = [[],[],[],[],[],[]] #.text.strip()  # .text.strip() в текст превращает все что и так текст), но надо избавится от окружения
+    pannels = soup.find_all('li', class_='search-snippet-view')
+    for pann in pannels:
+        adres = pann.find('div', class_='search-business-snippet-view__address').text.strip()
+        adres_ru = adres
+        try:
+            int(adres.split()[-1])
+            adres = str(adres) + "+Moscva"
+        except:
+            adres = str(adres)
+        adres = translit(adres, 'ru', reversed=True)
+        adres = adres.replace(" ", "+").replace("'", "").replace(",", "")
+        soup_url = BeautifulSoup(get_html(string_ya_api + adres), 'lxml')
+        try:
+            koords = soup_url.find("pos").text.split()
+            dist = distance(shirina, dolgota, float(koords[1]), float(koords[0]))
+        except:
+            continue
+        if dist > 1900:
+            print("dist")
+            continue
+        raiting = pann.find('span', class_="business-rating-badge-view__rating-text _size_m").text.strip()
+        try:
+            name = pann.find('div', class_="search-business-snippet-view__title _with-badge").text  # try to find tre name
+        except Exception:
+            name = pann.find('div', class_="search-business-snippet-view__title").text
+        except:
+            name = "NoName"
+        link = pann.find('a', class_="link-wrapper")
+        urlka = link.get('href')
+        open_or_not = pann.find('div', class_="business-working-status-view__text").text.strip()
+        bar_res[0].append(adres_ru)
+        bar_res[2].append(name)
+        bar_res[1].append(raiting)
+        bar_res[5].append(open_or_not)
         bar_res[3].append(urlka)
         bar_res[4].append(dist)
     return bar_res
@@ -69,11 +147,6 @@ def get_name(name, dolgota, shirina):  # send you info about your ip and user_ag
     soup = BeautifulSoup(get_html("https://yandex.ru" + str(html)), 'lxml')
     adres = soup.find_all('div', class_="orgpage-header-view__contact")[2].find("span").text.strip()
     adres_ru = adres
-    adres = str(adres)
-    adres = translit(adres, 'ru', reversed=True)
-    adres = adres.replace(" ", "+").replace("'", "").replace(",", "")
-    soup_url = BeautifulSoup(get_html(string_ya_api + adres), 'lxml')
-    koords = soup_url.find("pos").text.split()
     try:
         int(adres.split()[-1])
         adres = str(adres) + "+Moscva"
@@ -141,18 +214,10 @@ def distance(Ash, Ado, Bsh, Bdo):
     dist = ad * EARTH_RADIUS
 
     return dist
+
+
+
 #dat = ((56.859114, 35.910207), (55.770952, 37.617518), (56.340555, 30.521304), (54.513119, 36.261161), (59.934069, 30.306274))
 
-#print(get_ip(dat[2][1], dat[2][0]))
+#print(get_ip_new(dat[2][1], dat[2][0]))
 
-#print(get_name("Ровесник", 37.615598, 55.752394))
-#for i in range(len(dat)):
-  # print(get_ip(dat[i][1], dat[i][0]))
-
-#futures = [get_ip(i, i*0.634883, 55.757185) for i in range(20)]
-
-#loop = asyncio.get_event_loop()
-#loop.run_until_complete(asyncio.wait(futures))
-
-#for i in futures:
- #   print(futures[i])
