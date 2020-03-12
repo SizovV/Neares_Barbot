@@ -1,2 +1,2 @@
-TOKEN =  'axxaxaxax'    #Toke for bot
-API_YA = 'vot eche'
+TOKEN =  '769694415:AAHJOE20UmAp37pDIT7Y8LXplXVphen9n_I'    #Toke for bot
+API_YA = 'dbdb805d-be57-4fe5-9436-2f83acf41d1e'
