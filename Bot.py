@@ -61,13 +61,13 @@ def handle_location(message):
         data.mycursor.execute(sql_formula, guy_info)
         data.mydb.commit()
         sql_formula1 = str(message.chat.first_name)
-        bot.send_message(id2, "new"+str(sql_formula1))
+        bot.send_message(Config.my_id, "new"+str(sql_formula1))
     else:
         sql_formula = ("UPDATE guys SET last_longitude=%s, last_latitude=%s, last_visit_time=curtime(), last_visit_data=curdate() WHERE id = %s")
         guy_info = (message.location.longitude, message.location.latitude, message.chat.id)
         data.mycursor.execute(sql_formula, guy_info)
         data.mydb.commit()
-        bot.send_message(id2, str(message.chat.first_name))
+        bot.send_message(Config.my_id, str(message.chat.first_name))
 
 @bot.message_handler(content_types=['text'])
 def lalala(message):
@@ -83,7 +83,7 @@ def lalala(message):
             print(resa)
             a = pars_ing.get_name(message.text.split("\n")[1], resa[0][0], resa[0][1])
             bot.send_message(message.chat.id, "Ты добавил бар {}\nПо адресу:{}\nв Избраное!".format(a[0], a[1]))
-            bot.send_message(id2, "{} добавил бар {}\nПо адресу:{}\nв Избраное!".format(message.chat.first_name, a[0], a[1]))
+            bot.send_message(Config.my_id, "{} добавил бар {}\nПо адресу:{}\nв Избраное!".format(message.chat.first_name, a[0], a[1]))
         else:
             bot.send_message(message.chat.id, message.text)
     except:
