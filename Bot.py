@@ -89,6 +89,19 @@ def lalala(message):
     except:
         bot.send_message(message.chat.id, message.text)
 
+    if (message.chat.id == Config.my_id and message.text.split(":\n")[0] == "Разошли"):
+        try:
+            data.mycursor.execute("SELECT * FROM guys")
+        except:
+            importlib.reload(data)
+            data.mycursor.execute("SELECT * FROM guys")
+
+        massive = data.mycursor.fetchall()
+        for i in massive:
+            print(message.text.split(":\n")[1])
+            bot.send_message(i[0], message.text.split(":\n")[1])
+            print(i[0])
+
 @bot.message_handler(content_types=['photo'])
 def photo(message):
     bot.send_message(message.chat.id, "Ого!!! Какая крутая фотка, это ты сам сделал? \nУ тебя таллант")
