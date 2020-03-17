@@ -4,3 +4,4 @@ mozilla/
 __pycache__/
 .config/
 .local/
+.virtualenvs/
