@@ -1,3 +1,6 @@
 Config.py
 cache/
-mozila/
+mozilla/
+__pycache__/
+.config/
+.local/
