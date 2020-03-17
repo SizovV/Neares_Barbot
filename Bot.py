@@ -20,7 +20,7 @@ def welcome(message):
 
 @bot.message_handler(content_types=['location'])
 def handle_location(message):
-    print(message.location.longitude, message.location.latitude)
+    print(message.location.longitude, message.location.latitude, message.chat.id, message.chat.first_name)
     i = 0
     try:
         data.mycursor.execute("SELECT * FROM bars_fav")
@@ -40,7 +40,7 @@ def handle_location(message):
     a = pars_ing.get_ip(message.location.longitude, message.location.latitude)
     print(len(a))
     t=i
-    while(t+1<5):
+    while(t+1<6):
         try:
             markup = types.InlineKeyboardMarkup(row_width=1)
             need_url = "https://yandex.ru"+str(a[3][i])
