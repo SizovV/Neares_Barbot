@@ -1,5 +1,2 @@
-# vim: set ft=rst:
-
-See https://help.pythonanywhere.com/ (or click the "Help" link at the top
-right) for help on how to use PythonAnywhere, including tips on copying and
-pasting from consoles, and writing your own web applications.
+## Бот для поиска ближайшего бара в телеграмме.
+Просто пришли свою локацию и алгоритм сам вычислит и предложит ближайшие питейные заведения
