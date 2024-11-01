@@ -1,2 +1,2 @@
-##Бот в телеграмме для поиска ближайшего бара в городе.
-Просто пришли свою локацию и алгоритм сам вычислит и предложит ближайшие питейные заведения
+##Telegram bot for finding the nearest bar in the city.
+Just send your location and the algorithm will calculate and suggest the nearest drinking establishments.
